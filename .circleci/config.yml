@@ -1,0 +1,112 @@
+version: 2
+
+jobs:
+  build:
+    docker: &docker
+      - image: circleci/node:latest
+    steps:
+      - checkout
+      - restore_cache: &restore_cache
+          key: npm-dependencies-{{ arch }}-{{ .Branch }}-{{ checksum "package-lock.json" }}
+      - run: &npm_install
+          name: Install NPM Packages
+          command: npm install
+      - save_cache:
+          key: npm-dependencies-{{ arch }}-{{ .Branch }}-{{ checksum "package-lock.json" }}
+          paths: [node_modules]
+      - run:
+          name: Run Unit Tests
+          command: npm run test:unit
+
+  dev_deploy:
+    docker: *docker
+    steps:
+      - checkout
+      - run: &setup_aws_credentials
+          name: Setup AWS credentials
+          command: |
+            mkdir -p ~/.aws
+            while read line; do eval echo $line; done < ./.aws_profiles > ~/.aws/credentials
+      - restore_cache: *restore_cache
+      - run: *npm_install
+      - run:
+          name: Deploy Serveless Stack
+          command: >
+            npm run deploy --
+            --stage tst
+            --aws-profile tst
+
+  staging_deploy:
+    docker: *docker
+    steps:
+      - checkout
+      - run: *setup_aws_credentials
+      - restore_cache: *restore_cache
+      - run: *npm_install
+      - run:
+          name: Deploy Serveless Stack
+          command: >
+            npm run deploy --
+            --stage stg
+            --aws-profile stg
+
+  prod_deploy:
+    docker: *docker
+    steps:
+      - checkout
+      - run: *setup_aws_credentials
+      - restore_cache: *restore_cache
+      - run: *npm_install
+      - run:
+          name: Deploy Serveless Stack
+          command: >
+            npm run deploy --
+            --stage prd
+            --aws-profile prd
+            --dynamodb-read-capacity 2
+            --dynamodb-write-capacity 2
+
+workflows:
+  version: 2
+  dev_build_deploy_test:
+    jobs:
+      - build:
+          filters:
+            branches: {ignore: master}
+      - dev_deploy:
+          requires: [build]
+#      - dev_test_integration:
+#          requires: [dev_deploy]
+#      - dev_test_e2e:
+#          requires: [dev_deploy]
+
+  staging_build_deploy_test:
+    jobs:
+      - build:
+          filters:
+            branches: {only: master}
+      - staging_deploy:
+          context: dig-stg
+          requires: [build]
+#      - staging_test_integration:
+#          requires: [staging_deploy]
+# There are no e2e test as yet
+#      - staging_test_e2e:
+#          requires: [staging_deploy]
+
+  prod_build_approve_deploy_test:
+    jobs:
+      - build:
+          filters:
+            branches: {ignore: /.*/}
+            tags: {only: /^release-.*/}
+      - prod_approve:
+          type: approval
+          requires: [build]
+          filters:
+            tags: {only: /^release-.*/}
+      - prod_deploy:
+          context: dig-prd
+          requires: [prod_approve]
+          filters:
+            tags: {only: /^release-.*/}

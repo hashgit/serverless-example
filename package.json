@@ -1,0 +1,178 @@
+{
+  "name": "cb-customer",
+  "version": "1.0.0",
+  "description": "Customer API",
+  "scripts": {
+    "build:lint": "eslint src/ test/",
+    "build:clean": "rimraf dist/",
+    "build:compile": "serverless webpack",
+    "build": "npm run build:lint && npm run build:clean && npm run build:compile",
+    "deploy": "serverless deploy",
+    "deploy:tst": "npm run deploy -- --aws-profile tst",
+    "start": "babel-node src/api-local.js -r dotenv/config",
+    "test": "npm run build:lint && npm run test:unit",
+    "test:unit": "cross-env NODE_ENV=test nyc mocha --recursive test/unit"
+  },
+  "author": "",
+  "license": "ISC",
+  "eslintConfig": {
+    "parser": "babel-eslint",
+    "extends": [
+      "airbnb-base"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true,
+      "es6": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
+    "rules": {
+      "arrow-parens": [
+        "error",
+        "as-needed"
+      ],
+      "max-len": [
+        "error",
+        {
+          "code": 150
+        }
+      ],
+      "no-restricted-syntax": [
+        "off",
+        {
+          "selector": "for..of"
+        }
+      ],
+      "no-underscore-dangle": 0,
+      "import/no-extraneous-dependencies": [
+        "error",
+        {
+          "devDependencies": true
+        }
+      ],
+      "prefer-destructuring": [
+        "error",
+        {
+          "AssignmentExpression": {
+            "array": false,
+            "object": false
+          }
+        }
+      ]
+    }
+  },
+  "babel": {
+    "plugins": [
+      "transform-runtime",
+      [
+        "transform-object-rest-spread",
+        {
+          "useBuiltIns": true
+        }
+      ]
+    ],
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "node": "6.10"
+          },
+          "include": [
+            "transform-async-to-generator",
+            "es6.weak-map",
+            "es7.object.values",
+            "es7.object.entries"
+          ],
+          "test": {
+            "plugins": [
+              "istanbul"
+            ]
+          },
+          "useBuiltIns": "usage"
+        }
+      ]
+    ]
+  },
+  "nyc": {
+    "include": [
+      "src/**"
+    ],
+    "exclude": [
+      "src/api.js",
+      "src/api-local.js",
+      "src/api-docs.js",
+      "src/controllers/",
+      "src/configs/constants.js",
+      "src/services/log-service.js",
+      "src/services/trace-service.js"
+    ],
+    "require": [
+      "babel-core/register"
+    ],
+    "check-coverage": true,
+    "all": true,
+    "lines": 85,
+    "statements": 85,
+    "functions": 85,
+    "branches": 85
+  },
+  "devDependencies": {
+    "amazon-cognito-identity-js": "^2.0.1",
+    "aws-sdk": "^2.115.0",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.2.2",
+    "babel-loader": "^7.1.4",
+    "babel-plugin-istanbul": "^4.1.5",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.6.1",
+    "bluebird": "^3.5.1",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "cross-env": "^5.1.4",
+    "cucumber": "^4.0.0",
+    "eslint": "^4.6.1",
+    "eslint-config-airbnb-base": "^12.0.0",
+    "eslint-plugin-import": "^2.7.0",
+    "file-loader": "^1.1.11",
+    "minimist": "^1.2.0",
+    "mocha": "^5.0.2",
+    "mongodb": "^3.0.4",
+    "nyc": "^11.4.1",
+    "rimraf": "^2.6.2",
+    "serverless": "^1.23.0",
+    "serverless-offline": "^3.31.3",
+    "serverless-plugin-scripts": "^1.0.2",
+    "serverless-webpack": "^4.4.0",
+    "sinon": "^4.4.2",
+    "sinon-chai": "^3.0.0",
+    "webpack": "^3.11.0",
+    "webpack-node-externals": "^1.6.0",
+    "winston": "^3.0.0-rc2"
+  },
+  "dependencies": {
+    "aws-serverless-express": "^3.0.2",
+    "babel-runtime": "^6.26.0",
+    "body-parser": "^1.18.2",
+    "cors": "^2.8.4",
+    "dotenv": "^5.0.0",
+    "dynamodb-update-expression": "^0.1.21",
+    "express": "^4.15.4",
+    "joi": "^13.1.2",
+    "lodash": "^4.17.5",
+    "moment": "^2.18.1",
+    "object-hash": "^1.2.0",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.5",
+    "swagger-jsdoc": "^1.9.7",
+    "swagger-ui-dist": "^3.2.1",
+    "uuid": "^3.2.1",
+    "validy": "^0.1.7",
+    "window-mock": "0.0.13"
+  }
+}

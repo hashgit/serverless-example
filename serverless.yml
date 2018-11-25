@@ -1,0 +1,103 @@
+# serverless.yml
+
+service: customer
+
+plugins:
+  - serverless-plugin-scripts
+  - serverless-webpack
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  stage: ${self:custom.serverlessStage}
+  region: ${self:custom.serverlessRegion}
+  timeout: 30
+  memorySize: 256
+  apiKeys:
+    - ${self:custom.serverlessNamespace}-key
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:Query
+        - dynamodb:UpdateItem
+        - dynamodb:Scan
+        - dynamodb:DeleteItem
+      Resource:
+        - Fn::Join: ['',[Fn::GetAtt: DynamoDbCustomerTable.Arn, '*']]
+
+package:
+  individually: true
+
+functions:
+  api:
+    handler: src/api.handler
+    events:
+      - http:
+          method: any
+          path: /{proxy+}
+          private: true
+          cors: true
+      - http:
+          method: any
+          path: /
+          private: true
+          cors: true
+    environment:
+      DYNAMODB_CUSTOMER_TABLENAME: ${self:custom.dynamoDbCustomerTableName}
+  api-docs:
+    handler: src/api-docs.handler
+    events:
+      - http: get /docs
+      - http: get /docs/{proxy+}
+
+custom:
+  webpackIncludeModules: true
+  serverlessRegion: ${opt:region, 'ap-southeast-2'}
+  serverlessStage: ${opt:stage, 'tst'}
+  serverlessNamespace: ${self:service}-${self:custom.serverlessStage}
+  apiGatewayEnpoint: ${self:custom.apiGatewayMapping.${self:custom.serverlessStage}}
+  apiGatewayMapping:
+    tst: tst
+    stg: stg
+    prd: prod
+  dynamoDbCustomerTableName: ${self:custom.serverlessNamespace}-customers-dyn
+  dynamoDbCustomerReadCapacity: ${opt:dynamodb-customer-read-capacity, '1'}
+  dynamoDbCustomerWriteCapacity: ${opt:dynamodb-customer-write-capacity, '1'}
+
+resources:
+  Resources:
+    ApiGatewayRestApi:
+      Type: 'AWS::ApiGateway::RestApi'
+      Properties:
+        Name: ${self:custom.serverlessNamespace}
+    ApiGatewayMapping:
+      Type: 'AWS::ApiGateway::BasePathMapping'
+      DependsOn: ApiGatewayApiKey1
+      Properties:
+        BasePath: ${self:service}
+        DomainName: ${self:custom.apiGatewayEnpoint}
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        Stage: ${self:custom.serverlessStage}
+    DynamoDbCustomerTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: ${self:custom.dynamoDbCustomerTableName}
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        ProvisionedThroughput:
+          ReadCapacityUnits: ${self:custom.dynamoDbCustomerReadCapacity}
+          WriteCapacityUnits: ${self:custom.dynamoDbCustomerWriteCapacity}
+
+  Outputs:
+    ApiGatewayApiKeyId:
+      Description: The default API Key ID
+      Value:
+        Ref: ApiGatewayApiKey1

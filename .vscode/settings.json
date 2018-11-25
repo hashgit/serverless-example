@@ -1,0 +1,16 @@
+{
+  "files.eol": "\n",
+  "editor.tabSize": 2,
+  "mocha.files.glob": "test/unit/**/*.js",
+  "mocha.options": {
+    "compilers": {
+      "js": "babel-register"
+    }
+  },
+  "mocha.requires": [
+    "babel-register"
+  ],
+  "cSpell.words": [
+    "repo"
+  ],
+}
