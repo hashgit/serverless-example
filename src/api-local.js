@@ -4,7 +4,9 @@ import { SERVICE_NAME } from './configs/constants';
 import customerController from './controllers/customer-controller';
 import LogService from './services/log-service';
 
-express()
+const app = express();
+app.set('storageMock', []);
+app
   .use(LogService.middleware())
   .use(express.json())
   .use([`/${SERVICE_NAME}`, '/'], customerController)

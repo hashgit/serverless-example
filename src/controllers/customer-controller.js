@@ -1,12 +1,14 @@
 import express from 'express';
-import CustomerRepo from '../repos/customer-repo';
+// Use mock repo
+// import CustomerRepo from '../repos/customer-repo';
+import CustomerRepoMock from '../repos/mock-customer-repo';
 import CustomerService from '../services/customer-service';
 import CustomerModel from '../domain/customer-model';
 
 const router = new express.Router();
 
 router.use((req, res, next) => {
-  req.customerRepo = new CustomerRepo({ customerAttributeRepo: req.customerAttributeRepo, log: req.log });
+  req.customerRepo = new CustomerRepoMock({ log: req.log, storage: req.app.get('storageMock') });
   req.customerService = new CustomerService({ customerRepo: req.customerRepo, log: req.log });
   next();
 });
@@ -168,7 +170,7 @@ router.get('/', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const model = new CustomerModel({ id: req.body.id });
+    const model = new CustomerModel({ id: req.body.id, name: req.body.name });
     const validation = CustomerModel.CONSTRAINTS.validate(model);
 
     if (validation.error) {
@@ -182,6 +184,7 @@ router.post('/', async (req, res) => {
     }
 
     const customer = await req.customerService.create(model);
+    req.log.info(req.app.locals.storageMock);
     return res.json({
       data: {
         type: 'customer',
@@ -233,7 +236,7 @@ router.post('/', async (req, res) => {
  */
 router.put('/', async (req, res) => {
   try {
-    const model = new CustomerModel({ id: req.body.id });
+    const model = new CustomerModel({ id: req.body.id, name: req.body.name });
     const validation = CustomerModel.CONSTRAINTS.validate(model);
 
     if (validation.error) {
@@ -246,7 +249,7 @@ router.put('/', async (req, res) => {
       });
     }
 
-    const customer = await req.customerService.matchUpdate(model);
+    const customer = await req.customerService.update(model);
     return res.json({
       data: {
         type: 'customer',

@@ -30,7 +30,6 @@ export default class CustomerRepo {
    * @returns {Promise<Customer[]>}
    */
   async getAll() {
-    // TODO: Limit is just for now until we implement ElasticSearch in front of DynamoDB
     const payload = { TableName: this.tableName, Limit: 100 };
     const { Items } = await this.dynamoDb.scan(payload).promise();
     const customers = await Promise.all(Items.map(item => this.hydrateCustomer(item)));

@@ -164,7 +164,7 @@
     "dynamodb-update-expression": "^0.1.21",
     "express": "^4.15.4",
     "joi": "^13.1.2",
-    "lodash": "^4.17.5",
+    "lodash": "^4.17.11",
     "moment": "^2.18.1",
     "object-hash": "^1.2.0",
     "request": "^2.88.0",
