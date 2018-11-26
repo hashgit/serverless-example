@@ -4,6 +4,7 @@ import Customer from '../domain/customer';
 import CustomerRepo from '../repos/customer-repo';
 import LogService from './log-service';
 import Response404Exception from '../exceptions/response-404-exception';
+import LoyaltyService from './loyalty-service';
 
 export default class CustomerService {
   /**
@@ -12,10 +13,11 @@ export default class CustomerService {
    */
   /* istanbul ignore next */
   constructor({
-    log, customerRepo,
+    log, customerRepo, loyaltyService,
   } = {}) {
     this.log = log || new LogService();
     this.customerRepo = customerRepo || new CustomerRepo({ log: this.log });
+    this.loyaltyService = loyaltyService || new LoyaltyService({ log: this.log });
   }
 
   /**
@@ -46,6 +48,12 @@ export default class CustomerService {
 
     this.log.info('Creating customer', customer);
     await this.customerRepo.save(customer);
+
+    // TODO: This is for demonstration only
+    // Invoke another micro service from this micro service
+    //
+    // this.loyaltyService.create(customer)
+    //   .catch(error => this.log.error('Subscribing user failed', error));
 
     return customer;
   }
