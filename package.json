@@ -159,7 +159,7 @@
     "aws-serverless-express": "^3.0.2",
     "babel-runtime": "^6.26.0",
     "body-parser": "^1.18.2",
-    "cors": "^2.8.4",
+    "cors": "^2.8.5",
     "dotenv": "^5.0.0",
     "dynamodb-update-expression": "^0.1.21",
     "express": "^4.15.4",

@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 
 import { SERVICE_NAME } from './configs/constants';
 import customerController from './controllers/customer-controller';
@@ -7,6 +8,7 @@ import LogService from './services/log-service';
 const app = express();
 app.set('storageMock', []);
 app
+  .use(cors())
   .use(LogService.middleware())
   .use(express.json())
   .use([`/${SERVICE_NAME}`, '/'], customerController)
